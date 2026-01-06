@@ -1,11 +1,11 @@
-import {Mesh, Nullable, Scene, TransformNode} from "@babylonjs/core";
-import { Component } from "./Component";
+import {AbstractMesh, Mesh, Scene} from "@babylonjs/core";
+import {Component} from "./Component";
 
 export class GameObject {
     private components: Component[] = [];
 
     constructor(
-        public mesh: Mesh,
+        public mesh: Mesh | AbstractMesh,
         private scene: Scene
     ) {}
 

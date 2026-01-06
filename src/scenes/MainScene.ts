@@ -2,6 +2,7 @@ import {
     Color3,
     Engine,
     HemisphericLight,
+    Mesh,
     MeshBuilder,
     Scene,
     ScenePerformancePriority,
@@ -9,21 +10,26 @@ import {
     Vector3
 } from "@babylonjs/core";
 
-import {PlayerPrefab} from "../prefabs/PlayerPrefab";
-import {GameObject} from "../core/GameObject";
 import {MapGenerator} from "../map/MapGenerator";
 
 import "@babylonjs/loaders/glTF";
 import {AssetLoader} from "../core/AssetLoader";
 import {CameraComponent} from "../components/CameraComponent";
+import {PlayerPrefab} from "../prefabs/PlayerPrefab";
+import {TreePrefab} from "../prefabs/TreePrefab";
+
+type Updatable = { update(dt: number): void };
 
 export class MainScene {
-    scene: Scene;
-    private gameObjects: GameObject[] = [];
+    public readonly scene: Scene;
+    private readonly engine: Engine;
+    private gameObjects: Updatable[] = [];
     private assetLoader: AssetLoader;
+    private forestMesh?: Mesh;
 
     constructor(engine: Engine) {
         this.scene = new Scene(engine);
+        this.engine = engine;
 
         // mobile preset
         this.scene.performancePriority = ScenePerformancePriority.Aggressive;
@@ -34,7 +40,7 @@ export class MainScene {
         this.assetLoader = new AssetLoader(this.scene);
 
         this.setupEnvironment();
-        this.init(engine);
+        this.init();
     }
 
     private setupEnvironment(): void {
@@ -62,29 +68,35 @@ export class MainScene {
         ground.isPickable = false;
         ground.freezeWorldMatrix();
 
-        const mainPlace = new GameObject(ground, this.scene);
-        mainPlace.addComponent(new CameraComponent());
+        // If you want the ground to be a GameObject later, add it to gameObjects as an Updatable.
+        // For now we only attach the camera component via your component system entry point.
+        // NOTE: This assumes your camera component does not require a GameObject wrapper.
+        // If it does, revert to GameObject usage and push it into `gameObjects`.
+        new CameraComponent();
     }
 
-    private async init(engine: Engine): Promise<void> {
+    private async init(): Promise<void> {
         await this.loadAssets();
         await this.initMap();
         await this.initPlayer();
+    }
 
-        this.scene.onBeforeRenderObservable.add(() => {
-            const dt = engine.getDeltaTime() * 0.001;
-
-            for (let i = 0; i < this.gameObjects.length; i++) {
-                const obj: any = this.gameObjects[i];
-
-                if (obj && typeof obj.update === "function") {
-                    obj.update(dt);
-                } else {
-                    // Helpful debug: some items in `gameObjects` are not GameObjects / not updatable
-                    console.warn("Non-updatable object in gameObjects:", obj);
-                }
+    public update(dt: number): void {
+        for (let i = 0; i < this.gameObjects.length; i++) {
+            const obj = this.gameObjects[i];
+            if (obj && typeof (obj as any).update === "function") {
+                obj.update(dt);
             }
-        });
+        }
+    }
+
+    public render(): void {
+        // Keep render centralized so main.ts doesn't need to touch internal details.
+        this.scene.render();
+    }
+
+    public dispose(): void {
+        this.scene.dispose();
     }
 
     private async loadAssets(): Promise<void> {
@@ -95,32 +107,24 @@ export class MainScene {
     private async initMap(): Promise<void> {
         const generator = new MapGenerator(this.scene);
 
-        // const forest = await generator.generate(
-        //     {
-        //         width: 20,
-        //         depth: 20,
-        //         cellSize: 4,
-        //         density: 1
-        //     },
-        //     this.scene
-        // );
+        const treePrefab = new TreePrefab(this.assetLoader, "tree")
+
         const forest = await generator.generate({
-                width: 20,
-                depth: 20,
-                cellSize: 4,
-                density: 1
+                width: 40,
+                depth: 40,
+                cellSize: 1.5,
+                density: 0.7
             },
-            this.scene,
-            this.assetLoader
+            treePrefab,
         )
 
-        this.gameObjects.push(...forest);
+        this.forestMesh = forest;
     }
 
     private async initPlayer(): Promise<void> {
         const prefab = new PlayerPrefab();
         const player = prefab.create(this.scene, this.assetLoader);
+        player.mesh.position.setAll(0);
         this.gameObjects.push(player);
     }
 }
-

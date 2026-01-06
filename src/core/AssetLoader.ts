@@ -1,4 +1,4 @@
-import {AbstractMesh, AssetContainer, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, AssetContainer, Mesh, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {SceneLoader} from "@babylonjs/core/Loading/sceneLoader";
 
 import "@babylonjs/loaders/glTF";
@@ -39,10 +39,10 @@ export class AssetLoader {
         const promise = SceneLoader
             .LoadAssetContainerAsync(rootUrl, filename, this.scene)
             .then(container => {
-            this.containers.set(key, container);
-            this.loading.delete(key);
-            // console.log(container);
-        });
+                this.containers.set(key, container);
+                this.loading.delete(key);
+                // console.log(container);
+            });
 
         this.loading.set(key, promise);
 
@@ -87,18 +87,22 @@ export class AssetLoader {
         return result.rootNodes as TransformNode[];
     }
 
-    instantiateMesh(key: string): AbstractMesh {
+    instantiateMesh(key: string, options?: { name?: string }): Mesh {
         const container = this.containers.get(key);
         if (!container) {
             throw new Error(`GLB "${key}" not loaded`);
         }
 
-        const result = container.instantiateModelsToScene();
+        const result = container.instantiateModelsToScene(
+            name => options?.name ?? name,
+            false
+        );
 
-        const meshes = result.rootNodes.flatMap(n => n.getChildMeshes(false));
-
+        const meshes = result.rootNodes
+            .flatMap(n => n.getChildMeshes(false))
+            .filter((m): m is Mesh => m instanceof Mesh);
         if (meshes.length === 0) {
-            throw new Error(`GLB "${key}" does not contain meshes`);
+            throw new Error(`GLB "${key}" does not contain Mesh nodes`);
         }
 
         return meshes[0];
