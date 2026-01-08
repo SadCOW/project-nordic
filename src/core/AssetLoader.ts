@@ -88,6 +88,22 @@ export class AssetLoader {
     }
 
     instantiateMesh(key: string, options?: { name?: string }): Mesh {
+        return this.instantiateModel(key, options).mesh;
+    }
+
+    /**
+     *
+     * @param key
+     * @param options
+     */
+    instantiateModel(
+        key: string,
+        options?: {
+            name?: string;
+            parent?: AbstractMesh | null;
+            position?: Vector3;
+        }
+    ): { root: TransformNode; mesh: Mesh; meshes: Mesh[] } {
         const container = this.containers.get(key);
         if (!container) {
             throw new Error(`GLB "${key}" not loaded`);
@@ -98,14 +114,31 @@ export class AssetLoader {
             false
         );
 
+        if (options?.parent) {
+            result.rootNodes.forEach(n => (n.parent = options.parent!));
+        }
+
+        if (options?.position) {
+            result.rootNodes.forEach(n => {
+                if (n instanceof TransformNode) {
+                    n.position.copyFrom(options.position!);
+                }
+            });
+        }
+
         const meshes = result.rootNodes
-            .flatMap(n => n.getChildMeshes(false))
+            .flatMap(n => [n as TransformNode, ...n.getChildMeshes(false)])
             .filter((m): m is Mesh => m instanceof Mesh);
+
         if (meshes.length === 0) {
             throw new Error(`GLB "${key}" does not contain Mesh nodes`);
         }
 
-        return meshes[0];
+        const root = (result.rootNodes[0] as TransformNode ?? meshes[0]);
+
+        const mesh = meshes[0];
+
+        return {root, mesh, meshes}
     }
 
     /**

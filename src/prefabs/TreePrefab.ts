@@ -20,7 +20,13 @@ export class TreePrefab {
             return this.baseMesh;
         }
 
-        const mesh = this.assetLoader.instantiateMesh(this.assetKey);
+        // const mesh = this.assetLoader.instantiateMesh(this.assetKey);
+        const {root, mesh} = this.assetLoader.instantiateModel(
+            this.assetKey,
+            // {
+            //     name: "tree"
+            // }
+        );
         if (!(mesh instanceof Mesh)) {
             const name = (mesh as any)?.name ?? "<unknown>";
             throw new TypeError(`AssetLoader.instantiateMesh('${this.assetKey}') must return a Mesh` +
