@@ -6,7 +6,10 @@ import {MovementComponent} from "../components/MovementComponent";
 import {InputComponent} from "../components/InputComponent";
 
 export class AttackSystem extends System {
-    constructor(private attackAnimation: string, private attackSpeed: number) {
+    constructor(
+        private readonly attackAnimations: string[],
+        private readonly attackSpeed: number
+    ) {
         super();
     }
 
@@ -28,24 +31,26 @@ export class AttackSystem extends System {
 
                 if (attack.timer <= 0) {
                     attack.isAttacking = false;
+                    attack.currentAnimation = undefined;
                 }
-
-                animation.current = this.attackAnimation;
-                animation.loop = false;
-                animation.speed = this.attackSpeed;
 
                 if (movement) {
                     movement.velocity.set(0, 0, 0);
                 }
 
-                continue;
             }
 
-            if (input?.attack) {
+            if (input?.attack && !attack.isAttacking) {
                 attack.isAttacking = true;
                 attack.timer = attack.attackDuration;
 
-                animation.current = this.attackAnimation;
+                const index = Math.floor(
+                    Math.random() * this.attackAnimations.length
+                );
+
+                attack.currentAnimation = this.attackAnimations[index];
+
+                animation.current = attack.currentAnimation;
                 animation.loop = false;
                 animation.speed = this.attackSpeed;
 

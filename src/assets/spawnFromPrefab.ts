@@ -28,10 +28,10 @@ export function spawnFromPrefab(
 
     const skeletons: Skeleton[] = inst.skeletons ?? [];
     const animationGroups: AnimationGroup[] = inst.animationGroups ?? [];
-    console.log(
-        `[Prefab] ${name} animations:`,
-        animationGroups.map(a => a.name)
-    );
+    // console.log(
+    //     `[Prefab] ${name} animations:`,
+    //     animationGroups.map(a => a.name)
+    // );
 
     const getMesh = (meshName: string) => {
         return meshes.find(

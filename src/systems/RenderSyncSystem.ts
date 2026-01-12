@@ -10,13 +10,17 @@ export class RenderSyncSystem extends System {
 
         for (const [entity, render] of renders) {
             const transform = transforms.get(entity);
+
             if (!transform) continue;
 
-            const root = render.model.root;
-            // console.log(root.position)
-
-            root.position.copyFrom(transform.position);
-            root.rotation.copyFrom(transform.rotation);
+            if (render.collider) {
+                const collider = render.collider;
+                transform.position.copyFrom(collider.position);
+            } else {
+                const root = render.model.root;
+                root.position.copyFrom(transform.position);
+                root.rotation.copyFrom(transform.rotation);
+            }
         }
     }
 }

@@ -4,5 +4,6 @@ export enum CharacterAnimations {
     Run_backward = "Character::CharacterArmature|Run_Back",
     Run_left = "Character::CharacterArmature|Run_Left",
     Run_right = "Character::CharacterArmature|Run_Right",
-    Attack = "Character::CharacterArmature|Punch_Right",
+    Punch_Right = "Character::CharacterArmature|Punch_Right",
+    Punch_Left = "Character::CharacterArmature|Punch_Left"
 }

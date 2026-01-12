@@ -51,11 +51,6 @@ export class InputSystem extends System {
             if (input.left) direction.x -= 1;
             if (input.right) direction.x += 1;
 
-            // Нормализация, чтобы по диагонали не было быстрее
-            // if (direction.lengthSquared() > 0) {
-            //     direction.normalize();
-            // }
-
             // Движение по осям мира со смещением 45°
             if (direction.lengthSquared() > 0) {
                 direction.normalize();

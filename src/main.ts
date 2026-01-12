@@ -20,6 +20,10 @@ import {CharacterFactory} from "./gameplay/CharacterFactory";
 import {InputSystem} from "./systems/InputSystem";
 import {CameraFollowSystem} from "./systems/CameraFollowSystem";
 import {AttackSystem} from "./systems/AttackSystem";
+import {MapGenerator} from "./level/MapGenerator";
+import {LevelBuilder} from "./level/LevelBuilder";
+import {Color3} from "@babylonjs/core";
+import {MovementComponent} from "./components/MovementComponent";
 
 // ----------------------------------------------------------------
 // CANVAS
@@ -29,8 +33,13 @@ const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
 // ----------------------------------------------------------------
 // ENGINE + SCENE
 // ----------------------------------------------------------------
-const engine = new Engine(canvas, true);
+const engine = new Engine(canvas, false);
 const scene = new Scene(engine);
+scene.fogMode = Scene.FOGMODE_LINEAR;
+scene.fogStart = 25;   // с какого расстояния от камеры начинается туман
+scene.fogEnd = 45;     // где полностью непрозрачный
+scene.fogColor = new Color3(0.1, 0.12, 0.14);
+scene.collisionsEnabled = true;
 
 // ----------------------------------------------------------------
 // LIGHT
@@ -39,14 +48,14 @@ const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
 light.intensity = 1.1;
 
 // ----------------------------------------------------------------
-// CAMERA (ISOMETRIC)
-// ----------------------------------------------------------------
-const isoCamera = new IsometricCamera(scene, Vector3.Zero());
-
-// ----------------------------------------------------------------
 // ECS WORLD
 // ----------------------------------------------------------------
 const world = new World();
+
+// ----------------------------------------------------------------
+// CAMERA (ISOMETRIC)
+// ----------------------------------------------------------------
+const isoCamera = new IsometricCamera(scene, Vector3.Zero());
 
 // ----------------------------------------------------------------
 // SYSTEMS (ВАЖЕН ПОРЯДОК)
@@ -59,12 +68,17 @@ const world = new World();
 // ----------------------------------------------------------------
 const systems = [
     new InputSystem(),
+    new AttackSystem(
+        [
+            CharacterAnimations.Punch_Right,
+            CharacterAnimations.Punch_Left
+        ]
+        , 1.6),
     new MovementSystem(),
     new AnimationStateSystem(
         CharacterAnimations.Idle,
         CharacterAnimations.Run_forward
     ),
-    new AttackSystem(CharacterAnimations.Attack, 1.6),
     new AnimationSystem(),
     new CameraFollowSystem(isoCamera),
     new RenderSyncSystem()
@@ -76,13 +90,22 @@ const systems = [
 const prefabLoader = new PrefabLoader(scene);
 
 // ----------------------------------------------------------------
+// GENERATE MAP
+// ----------------------------------------------------------------
+const generator = new MapGenerator();
+const level = generator.generate(100, 100);
+
+const builder = new LevelBuilder(world, scene, prefabLoader);
+await builder.build(level);
+const center = builder.getCenter();
+
+
+// ----------------------------------------------------------------
 // SPAWN CHARACTER
 // ----------------------------------------------------------------
 async function spawnCharacter() {
     const factory = new CharacterFactory(world, scene, prefabLoader);
-    const playerEntity = await factory.createCharacter("/models/player/player.glb", new Vector3(0, 0, 0));
-
-    // const movement = world.getComponent<MovementComponent>(playerEntity, "Movement")
+    const playerEntity = await factory.createCharacter("/models/player/player.glb", center);
 }
 
 await spawnCharacter();
