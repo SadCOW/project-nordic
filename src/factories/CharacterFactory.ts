@@ -14,32 +14,36 @@ export class CharacterFactory {
         const prefab = await this.prefabs.loadGLB(url);
         const model = spawnFromPrefab(this.scene, prefab.container, "Character");
 
+        const colliderHeight = 2
         const collider = MeshBuilder.CreateBox("playerCollider", {
-            height: 2,
+            height: colliderHeight,
             width: 0.3,
             depth: 0.3
         }, this.scene);
 
-        // collider.rotation.y = Math.PI;
-        collider.position.set(pos.x, 2 * 0.5, pos.z);
+        collider.position.copyFrom(pos);
+        // collider.position.y = colliderHeight * 0.5;
+        collider.rotation.set(0, 0, 0);
+
         collider.isVisible = false;
         collider.checkCollisions = true;
-
-        model.root.parent = collider;
-        model.root.position.set(0, -1.0, 0);
-        model.root.rotation.set(0, 0, 0);
 
         // Transform
         this.world.addComponent(entity, "Transform", {
             position: pos.clone(),
-            rotation: new Vector3(0, 0, 0)
+            rotation: new Vector3(0, colliderHeight / 2, 0)
         });
 
         // Render
         this.world.addComponent(entity, "Render", {
-            model,
-            collider
+            model
         });
+
+        // Collider
+        this.world.addComponent(entity, "Collider", {
+            mesh: collider,
+            offset: new Vector3(0, 1, 0)
+        })
 
         // Animation
         this.world.addComponent(entity, "Animation", {

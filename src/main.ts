@@ -16,7 +16,7 @@ import {MovementSystem} from "./systems/MovementSystem";
 import {AnimationStateSystem} from "./systems/AnimationStateSystem";
 import {AnimationSystem} from "./systems/AnimationSystem";
 import {RenderSyncSystem} from "./systems/RenderSyncSystem";
-import {CharacterFactory} from "./gameplay/CharacterFactory";
+import {CharacterFactory} from "./factories/CharacterFactory";
 import {InputSystem} from "./systems/InputSystem";
 import {CameraFollowSystem} from "./systems/CameraFollowSystem";
 import {AttackSystem} from "./systems/AttackSystem";
@@ -105,7 +105,7 @@ const center = builder.getCenter();
 // ----------------------------------------------------------------
 async function spawnCharacter() {
     const factory = new CharacterFactory(world, scene, prefabLoader);
-    const playerEntity = await factory.createCharacter("/models/player/player.glb", center);
+    const playerEntity = await factory.createCharacter("/models/player/player.glb", center.clone());
 }
 
 await spawnCharacter();
