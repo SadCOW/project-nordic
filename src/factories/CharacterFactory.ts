@@ -26,7 +26,6 @@ export class CharacterFactory {
         collider.rotation.set(0, 0, 0);
 
         collider.isVisible = false;
-        collider.checkCollisions = true;
 
         // Transform
         this.world.addComponent(entity, "Transform", {

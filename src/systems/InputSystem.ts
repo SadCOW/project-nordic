@@ -36,10 +36,10 @@ export class InputSystem extends System {
             if (!movement) continue;
 
             // Обновляем InputComponent из текущего состояния клавиш
-            input.forward = this.keys.has("KeyW");
-            input.backward = this.keys.has("KeyS");
-            input.left = this.keys.has("KeyA");
-            input.right = this.keys.has("KeyD");
+            input.forward = this.keys.has("KeyW") || this.keys.has("ArrowUp");
+            input.backward = this.keys.has("KeyS") || this.keys.has("ArrowDown");
+            input.left = this.keys.has("KeyA") || this.keys.has("ArrowLeft");
+            input.right = this.keys.has("KeyD") || this.keys.has("ArrowRight");
             input.attack = this.keys.has("Space");
             // console.log(this.keys);
 

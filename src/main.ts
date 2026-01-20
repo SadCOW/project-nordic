@@ -24,6 +24,7 @@ import {MapGenerator} from "./level/MapGenerator";
 import {LevelBuilder} from "./level/LevelBuilder";
 import {Color3} from "@babylonjs/core";
 import {MovementComponent} from "./components/MovementComponent";
+import {BoxCollisionSystem} from "./systems/BoxCollisionSystem";
 
 // ----------------------------------------------------------------
 // CANVAS
@@ -75,6 +76,7 @@ const systems = [
         ]
         , 1.6),
     new MovementSystem(),
+    new BoxCollisionSystem(),
     new AnimationStateSystem(
         CharacterAnimations.Idle,
         CharacterAnimations.Run_forward
