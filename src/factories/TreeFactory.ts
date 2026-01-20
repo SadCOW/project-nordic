@@ -1,6 +1,6 @@
 import {WorldObjectFactory} from "./WorldObjectFactory";
 import {World} from "../core/World";
-import {AssetContainer, MeshBuilder, Scene} from "@babylonjs/core";
+import {AbstractMesh, AssetContainer, MeshBuilder, Scene} from "@babylonjs/core";
 import {Vector3} from "@babylonjs/core/Maths/math.vector";
 import {GlbPrefab, PrefabLoader} from "../assets/PrefabLoader";
 import {SpawnContext} from "../world/WorldObjectRegistry";
@@ -9,7 +9,8 @@ import {ModelInstance} from "../assets/ModelInstance";
 
 export class TreeFactory implements WorldObjectFactory {
     private prefab?: AssetContainer;
-    private prefabPromise: Promise<AssetContainer>;
+    private readonly prefabPromise: Promise<AssetContainer>;
+    private collider?: AbstractMesh;
 
     constructor(
         private world: World,
@@ -31,18 +32,6 @@ export class TreeFactory implements WorldObjectFactory {
         const SCALE_MAX = 1.5;
         const scale = ctx.scale ?? (SCALE_MIN + Math.random() * (SCALE_MAX - SCALE_MIN));
 
-        /* --------- коллайдер -------- */
-        const colliderHeight = 2 * scale;
-        const colliderRadius = 0.3 * scale;
-
-        const collider = MeshBuilder.CreateBox(
-            "treeCollider",
-            { height: colliderHeight, width: colliderRadius, depth: colliderRadius },
-            this.scene
-        );
-        collider.position.copyFrom(ctx.position);
-        collider.isVisible = false;
-
         /* --------- модель дерева -------- */
         const model: ModelInstance = spawnFromPrefab(this.scene, this.prefab, "Tree");
         model.root.scaling.set(scale, scale, scale);
@@ -55,11 +44,28 @@ export class TreeFactory implements WorldObjectFactory {
             rotation: new Vector3(0, ctx.rotationY ?? 0, 0)
         });
 
-        this.world.addComponent(entity, "Render", { model });
+        this.world.addComponent(entity, "Render", {model});
+
+        /* --------- коллайдер -------- */
+        await this.createCollider(scale, entity)
+
+    }
+
+    async createCollider(scale: number, entity: number) {
+        const colliderHeight = 2 * scale;
+        const colliderDiameter = 0.3 * scale;
+
+        this.collider = MeshBuilder.CreateCylinder(
+            "treeCollider",
+            {height: colliderHeight, diameter: colliderDiameter},
+            this.scene
+        );
+
+        this.collider.isVisible = false;
 
         this.world.addComponent(entity, "Collider", {
-            mesh: collider,
-            offset: Vector3.Zero()
+            mesh: this.collider,
+            offset: new Vector3(0, colliderHeight / 2, 0)
         });
     }
 

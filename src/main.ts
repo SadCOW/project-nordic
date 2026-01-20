@@ -107,7 +107,8 @@ const center = builder.getCenter();
 // ----------------------------------------------------------------
 async function spawnCharacter() {
     const factory = new CharacterFactory(world, scene, prefabLoader);
-    const playerEntity = await factory.createCharacter("/models/player/player.glb", center.clone());
+    // const playerEntity = await factory.createCharacter("/models/player/player.glb", center.clone());
+    const playerEntity = await factory.createCharacter("/models/player/player.glb", Vector3.Zero());
 }
 
 await spawnCharacter();
